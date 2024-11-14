@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": ["./src"],
+    "python.defaultInterpreterPath": "python3",
+    "python.analysis.autoSearchPaths": true
+}

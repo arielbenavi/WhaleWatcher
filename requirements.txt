@@ -1,0 +1,9 @@
+# requirements.txt contents (place in requirements.txt)
+beautifulsoup4==4.12.2
+pandas>=2.0.0
+requests==2.31.0
+selenium==4.11.2
+python-telegram-bot==20.6
+python-dotenv==1.0.0
+lxml
+chromedriver-autoinstaller>=0.6.0

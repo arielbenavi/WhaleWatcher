@@ -1,0 +1,2 @@
+wallet_address,timestamp,hash,amount_btc,balance_btc,fee,block_height,price_usd,transaction_value_usd,transaction_type,portfolio_pct
+1FhodFYr1SDZD4XawyMJfmmfLenAAQLFRT,2024-11-10 23:35:58,69a6debd1137628162652c1a48c00be3cd6c94d5934b28ca0c2dcf13e3b22858,27871.32112661,27871.32112661,9.66e-05,869778,80367.0,2239934464.982266,buy,100.0

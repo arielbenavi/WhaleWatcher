@@ -1,4 +1,5 @@
 from src.data.processor import DataProcessor
+from src.data.metrics import WalletMetricsCalculator
 import logging
 
 def setup_logging():
@@ -19,6 +20,12 @@ def main():
         processor = DataProcessor()
         processor.process_all_wallets()
         logger.info("Processing complete")
+
+        # Calculate metrics
+        logger.info("Starting wallets metrics calculation...")
+        metrics_calculator = WalletMetricsCalculator()
+        metrics_calculator.process_all_wallets()
+        logger.info("Wallet metrics calculation complete")
         
     except Exception as e:
         logger.error(f"Error in data processing: {str(e)}")

@@ -1,2 +1,2 @@
-wallet_address,timestamp,hash,amount_btc,balance_btc,fee,block_height,price_usd,transaction_value_usd,transaction_type,portfolio_pct
-3LRPsisrBBs5UbNjL4RoPRfg99LmHkm1Lf,2024-11-06 13:15:19,1b88eb58824904f79b701e95e2e98fa10cbe3539f5176747ce5cb274a4378699,10353.25605416,10353.25605416,5.5e-06,869118,75580.0,782499092.5734128,buy,100.0
+wallet_address,timestamp,hash,amount_btc,balance_btc,fee,block_height,last_updated,price_usd,transaction_value_usd,transaction_type,portfolio_pct
+3LRPsisrBBs5UbNjL4RoPRfg99LmHkm1Lf,2024-11-06 13:15:19,1b88eb58824904f79b701e95e2e98fa10cbe3539f5176747ce5cb274a4378699,10353.25605416,10353.25605416,5.5e-06,869118,2025-02-08 16:31:32.928031,75580.0,782499092.5734128,buy,100.0

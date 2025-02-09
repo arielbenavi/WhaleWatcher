@@ -1,5 +1,4 @@
-# .gitignore
-# data/
+# Logs and databases
 logs/
 *.db
 *.pyc
@@ -8,4 +7,19 @@ __pycache__/
 .venv/
 *.log
 
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
 
+# Credentials and sensitive data
+src/config/credentials.py
+
+# Data directories
+data/raw/
+data/processed/
+
+# OS specific
+.DS_Store
+Thumbs.db

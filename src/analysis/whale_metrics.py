@@ -41,35 +41,38 @@ class WhaleMetricsCalculator:
         return metrics
     
     def _calculate_roi_metrics(self, df: pd.DataFrame) -> dict:
-        """Calculate ROI over different timeframes"""
+        """Calculate ROI using cost basis method"""
         metrics = {}
         
-        # Calculate overall ROI
-        if not df.empty:
-            first_balance = df.iloc[0]['balance_btc']
-            last_balance = df.iloc[-1]['balance_btc']
-            roi = ((last_balance - first_balance) / first_balance * 100) if first_balance != 0 else 0
-            metrics['roi_overall'] = roi
-            
-            # Recent timeframes
-            now = df['timestamp'].max()
-            month_ago = now - timedelta(days=30)
-            three_months_ago = now - timedelta(days=90)
-            
-            # Last month ROI
-            month_df = df[df['timestamp'] >= month_ago]
-            if not month_df.empty:
-                month_roi = ((month_df.iloc[-1]['balance_btc'] - month_df.iloc[0]['balance_btc']) 
-                           / month_df.iloc[0]['balance_btc'] * 100) if month_df.iloc[0]['balance_btc'] != 0 else 0
-                metrics['roi_last_month'] = month_roi
-            
-            # Last 3 months ROI
-            three_month_df = df[df['timestamp'] >= three_months_ago]
-            if not three_month_df.empty:
-                three_month_roi = ((three_month_df.iloc[-1]['balance_btc'] - three_month_df.iloc[0]['balance_btc'])
-                                 / three_month_df.iloc[0]['balance_btc'] * 100) if three_month_df.iloc[0]['balance_btc'] != 0 else 0
-                metrics['roi_last_3months'] = three_month_roi
+        # Get all buys and sells
+        buys = df[df['transaction_type'] == 'buy']
+        sells = df[df['transaction_type'] == 'sell']
         
+        if not buys.empty:
+            # Calculate total cost basis (sum of all buy amounts)
+            total_invested = (buys['amount_btc'] * buys['price_usd']).sum() if 'price_usd' in df else buys['amount_btc'].sum()
+            
+            # Calculate current value
+            current_balance = df.iloc[-1]['balance_btc']
+            current_price = df.iloc[-1]['price_usd'] if 'price_usd' in df else 1  # Use 1 if no price data
+            current_value = current_balance * current_price
+            
+            # Calculate realized gains from sells
+            realized_gains = (sells['amount_btc'].abs() * sells['price_usd']).sum() if 'price_usd' in df else sells['amount_btc'].abs().sum()
+            
+            # Total return includes both realized gains and current holdings
+            total_return = realized_gains + current_value
+            
+            # Calculate ROI
+            if total_invested > 0:
+                roi = ((total_return - total_invested) / total_invested) * 100
+                metrics['roi_overall'] = roi
+                metrics['total_invested'] = total_invested
+                metrics['current_value'] = current_value
+                metrics['realized_gains'] = realized_gains
+            else:
+                metrics['roi_overall'] = 0
+                
         return metrics
     
     def _calculate_trading_patterns(self, df: pd.DataFrame) -> dict:

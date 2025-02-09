@@ -1,4 +1,5 @@
 from src.data.collector import WhaleDataCollector
+from src.data.BTC_price_collector import BTCPriceCollector
 from src.data.storage import DataStorage
 import logging
 
@@ -17,6 +18,11 @@ def main():
     logger = logging.getLogger(__name__)
     
     try:
+        # Update BTC USD price data appending on bitfenix file
+        logger.info("Updating BTC price data")
+        price_collector = BTCPriceCollector()
+        price_collector.update_price_data()
+    
         collector = WhaleDataCollector()
         storage = DataStorage()
         

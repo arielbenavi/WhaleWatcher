@@ -1,5 +1,6 @@
 import pandas as pd
 import time
+from pathlib import Path
 from datetime import datetime
 import logging
 import requests
@@ -26,6 +27,12 @@ class WhaleDataCollector:
             except Exception as e:
                 self.logger.error(f"Error fetching page {page}: {str(e)}")
                 
+        # Delete old richlist files before saving new one
+        richlist_dir = Path("data/raw/richlist")
+        for old_file in richlist_dir.glob("richlist_*.csv"):
+            old_file.unlink()
+            self.logger.info(f"Deleted old richlist file: {old_file}")
+
         return df
 
     def get_wallet_transactions(self, address: str) -> pd.DataFrame:
@@ -76,10 +83,18 @@ class WhaleDataCollector:
 
         return pd.json_normalize(transactions)
 
+    # def _get_proxy(self) -> Dict[str, str]:
+    #     """Get proxy configuration"""
+    #     session_number = random.randint(1, 9999)
+    #     proxy = f"http://oc-71c84685df30a37ce15a54edb5bc6d50967b7cc0554c18637b06868a74118326-country-FR-session-{session_number}:sp51985direv@proxy.oculus-proxy.com:31111"
+    #     return {"http": proxy, "https": proxy}
+
     def _get_proxy(self) -> Dict[str, str]:
-        """Get proxy configuration"""
-        session_number = random.randint(1, 9999)
-        proxy = f"http://oc-71c84685df30a37ce15a54edb5bc6d50967b7cc0554c18637b06868a74118326-country-FR-session-{session_number}:sp51985direv@proxy.oculus-proxy.com:31111"
+        """Get proxy configuration using Oxylabs proxy credentials"""
+        from src.config.credentials import OXYLABS_USERNAME, OXYLABS_PASSWORD
+        
+        proxy = f"http://{OXYLABS_USERNAME}:{OXYLABS_PASSWORD}@pr.oxylabs.io:7777"
+        
         return {"http": proxy, "https": proxy}
 
     def _get_headers(self) -> Dict[str, str]:
@@ -93,7 +108,7 @@ class WhaleDataCollector:
 
     def _extract_richlist_wallets(self, response) -> pd.DataFrame:
         """Parse richlist page and extract wallet information"""
-        df = pd.DataFrame({'btc_address': [], 'last_in': [], 'last_out': []})
+        df = pd.DataFrame({'rank': [], 'btc_address': [], 'last_in': [], 'last_out': []})
         soup = BeautifulSoup(response.text, 'lxml')
         
         # Find and parse both tables
@@ -122,7 +137,7 @@ class WhaleDataCollector:
                 last_in = timestamps[1].text if timestamps[1].text else None
                 last_out = timestamps[-1].text if timestamps[-1].text else None
                 
-                df.loc[len(df)] = [address, last_in, last_out]
+                df.loc[len(df)] = [len(df) + 1, address, last_in, last_out]
                 
             except Exception as e:
                 self.logger.error(f"Error parsing wallet entry: {str(e)}")

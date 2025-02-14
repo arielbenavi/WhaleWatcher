@@ -144,8 +144,3 @@ class WhaleDataCollector:
                 continue
                 
         return df
-
-    def cleanup(self):
-        """Close browser and clean up resources"""
-        if self.browser:
-            self.browser.quit()

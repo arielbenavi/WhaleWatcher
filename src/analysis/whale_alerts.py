@@ -4,13 +4,15 @@ import requests
 from datetime import datetime, timedelta
 import logging
 import socket
+from src.config.credentials import TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
+
 
 class WhaleAlertMonitor:
     def __init__(self, base_dir="data", alert_enabled=True):
         self.base_dir = Path(base_dir)
         self.alert_enabled = alert_enabled
-        self.token_id = '5339164296:AAHe8_P50HQa_SCybmMeFC51ggIWoQDuQhI'
-        self.chat_id = '1546739282'
+        self.token_id = TELEGRAM_TOKEN
+        self.chat_id = TELEGRAM_CHAT_ID
         self.logger = logging.getLogger(__name__)
         
         # Load wallet stats for context

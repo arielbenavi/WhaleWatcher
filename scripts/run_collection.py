@@ -1,8 +1,14 @@
+import sys
+from pathlib import Path
+
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 from src.data.collector import WhaleDataCollector
 from src.data.BTC_price_collector import BTCPriceCollector
 from src.data.storage import DataStorage
 import logging
-from pathlib import Path
+
 
 def setup_logging():
 

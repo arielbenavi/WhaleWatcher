@@ -2,8 +2,14 @@ from src.data.collector import WhaleDataCollector
 from src.data.BTC_price_collector import BTCPriceCollector
 from src.data.storage import DataStorage
 import logging
+from pathlib import Path
 
 def setup_logging():
+
+    # Create logs directory if it doesn't exist
+    logs_dir = Path('logs')
+    logs_dir.mkdir(exist_ok=True)
+
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',

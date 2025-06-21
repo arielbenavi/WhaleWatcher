@@ -8,6 +8,12 @@ import random
 from bs4 import BeautifulSoup
 from typing import List, Dict, Optional
 
+try:
+    from src.config.credentials import OXYLABS_USERNAME, OXYLABS_PASSWORD
+except ImportError as e:
+    raise ImportError("Missing credentials file. Please create src/config/credentials.py with OXYLABS_USERNAME and OXYLABS_PASSWORD") from e
+
+
 class WhaleDataCollector:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
@@ -91,7 +97,7 @@ class WhaleDataCollector:
 
     def _get_proxy(self) -> Dict[str, str]:
         """Get proxy configuration using Oxylabs proxy credentials"""
-        from src.config.credentials import OXYLABS_USERNAME, OXYLABS_PASSWORD
+        # from src.config.credentials import OXYLABS_USERNAME, OXYLABS_PASSWORD
         
         proxy = f"http://{OXYLABS_USERNAME}:{OXYLABS_PASSWORD}@pr.oxylabs.io:7777"
         

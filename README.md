@@ -19,11 +19,6 @@ A Python-based system that monitors and analyzes Bitcoin whale wallet activities
 ## Proxy
 you can get free 1 week trial at oculus-proxy. i personally favor oxylab's pay as you go 8$ per gb for low frequancy requests volume.
 
-
-## TODO:
-1. update btc/usd price data to existing csv somehow
-2. add to assumptions when you run the script midday you will get transaction data
-
 ## Installation
 
 ```bash

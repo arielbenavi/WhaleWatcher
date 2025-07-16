@@ -89,15 +89,24 @@ class DataProcessor:
             matching_rows = self.richlist[self.richlist['btc_address'] == wallet_address]
             if not matching_rows.empty:
                 processed['rank'] = matching_rows['rank'].iloc[0]
+            else:
+                processed['rank'] = 999  # Former richlist wallet, now >100
+                self.logger.warning(f"Wallet {wallet_address} not in current richlist, assigning rank 999")
         else:
-            processed['rank'] = None
+            processed['rank'] = 999
+            self.logger.warning("Richlist is empty, assigning default rank 999")
         
         # Match with price data and ensure numeric type
         processed['price_usd'] = None  
         for idx, row in processed.iterrows():
             date = row['timestamp'].strftime('%Y-%m-%d')
             if date in self.price_data.index:
-                processed.at[idx, 'price_usd'] = float(self.price_data.loc[date, 'Price'])
+                price_values = self.price_data.loc[date, 'Price']
+                # Handle multiple entries for same date - take the first one
+                if isinstance(price_values, pd.Series):
+                    processed.at[idx, 'price_usd'] = float(price_values.iloc[0])
+                else:
+                    processed.at[idx, 'price_usd'] = float(price_values)
         
         # Calculate additional metrics with error handling
         processed['transaction_value_usd'] = processed.apply(
@@ -125,10 +134,11 @@ class DataProcessor:
         
         # Add date-based aggregation
         processed['date'] = processed['timestamp'].dt.date
-        
+
         # Aggregate transactions by date
         # July 16th 2025 - removed , 'rank' due to keyerror (float?)
-        daily_aggregated = processed.groupby(['wallet_address', 'date']).agg({
+        # processed['rank'] = processed['rank'].fillna(0)
+        daily_aggregated = processed.groupby(['wallet_address', 'date', 'rank']).agg({
             'timestamp': ['first', 'last'],
             'hash': lambda x: ','.join(x),
             'amount_btc': 'sum',

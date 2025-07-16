@@ -5,6 +5,10 @@ logs/
 __pycache__/
 .env
 .venv/
+<<<<<<< HEAD
+=======
+venv/
+>>>>>>> recovered-again
 *.log
 
 # IDE

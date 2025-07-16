@@ -19,11 +19,14 @@ A Python-based system that monitors and analyzes Bitcoin whale wallet activities
 ## Proxy
 you can get free 1 week trial at oculus-proxy. i personally favor oxylab's pay as you go 8$ per gb for low frequancy requests volume.
 
+<<<<<<< HEAD
 
 ## TODO:
 1. update btc/usd price data to existing csv somehow
 2. add to assumptions when you run the script midday you will get transaction data
 
+=======
+>>>>>>> recovered-again
 ## Installation
 
 ```bash
@@ -113,4 +116,8 @@ BTC_USD_Bitfinex_Investing_com contains price data from 2012 until end of 2024 a
 
 
 
+<<<<<<< HEAD
 LAST THING CHANGED: gitignore to include oxylabs proxy creds. before that successfull e2e run.
+=======
+LAST THING CHANGED: gitignore to include oxylabs proxy creds. before that successfull e2e run.
+>>>>>>> recovered-again

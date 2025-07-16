@@ -127,7 +127,8 @@ class DataProcessor:
         processed['date'] = processed['timestamp'].dt.date
         
         # Aggregate transactions by date
-        daily_aggregated = processed.groupby(['wallet_address', 'date', 'rank']).agg({
+        # July 16th 2025 - removed , 'rank' due to keyerror (float?)
+        daily_aggregated = processed.groupby(['wallet_address', 'date']).agg({
             'timestamp': ['first', 'last'],
             'hash': lambda x: ','.join(x),
             'amount_btc': 'sum',

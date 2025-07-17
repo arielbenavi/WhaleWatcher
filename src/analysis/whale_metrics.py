@@ -3,14 +3,25 @@ import pandas as pd
 import logging
 from datetime import datetime, timedelta
 
+def _load_current_btc_price(self) -> float:
+    """Load current BTC price (last entry from price file)"""
+    price_file = self.base_dir / "raw" / "price" / "BTC_USD_Bitfinex_Investing_com.csv"
+    try:
+        df = pd.read_csv(price_file)
+        # Just get the last price value
+        last_price = df['Price'].iloc[-1]
+        return float(last_price)
+    except (FileNotFoundError, IndexError, ValueError) as e:
+        self.logger.error(f"Error loading current BTC price: {str(e)}")
+        return 0
+
 class WhaleMetricsCalculator:
     def __init__(self, base_dir: str = "data"):
         self.base_dir = Path(base_dir)
         self.logger = logging.getLogger(__name__)
         
-        # Ensure metrics directory exists
-        self.metrics_dir = self.base_dir / "processed" / "wallet_metrics"
-        self.metrics_dir.mkdir(parents=True, exist_ok=True)
+        # Load current BTC price
+        self.current_btc_price = self._load_current_btc_price()
         
     def calculate_wallet_metrics(self, wallet_address: str) -> dict:
         """Calculate performance metrics for a single wallet"""
@@ -41,7 +52,7 @@ class WhaleMetricsCalculator:
         return metrics
     
     def _calculate_roi_metrics(self, df: pd.DataFrame) -> dict:
-        """Calculate ROI using cost basis method"""
+        """Calculate ROI using net investment method"""
         metrics = {}
         
         # Get all buys and sells
@@ -49,30 +60,36 @@ class WhaleMetricsCalculator:
         sells = df[df['transaction_type'] == 'sell']
         
         if not buys.empty:
-            # Calculate total cost basis (sum of all buy amounts)
-            total_invested = (buys['amount_btc'] * buys['price_usd']).sum() if 'price_usd' in df else buys['amount_btc'].sum()
+            # Calculate total money put in (USD)
+            total_money_in = (buys['amount_btc'] * buys['price_usd']).sum() if 'price_usd' in df.columns else 0
             
-            # Calculate current value
+            # Calculate total money taken out (USD)
+            total_money_out = (sells['amount_btc'].abs() * sells['price_usd']).sum() if not sells.empty and 'price_usd' in df.columns else 0
+            
+            # Net investment (what they actually have at risk)
+            net_investment = total_money_in - total_money_out
+            
+            # Calculate current portfolio value
             current_balance = df.iloc[-1]['balance_btc']
-            current_price = df.iloc[-1]['price_usd'] if 'price_usd' in df else 1  # Use 1 if no price data
-            current_value = current_balance * current_price
+            current_value = current_balance * self.current_btc_price
             
-            # Calculate realized gains from sells
-            realized_gains = (sells['amount_btc'].abs() * sells['price_usd']).sum() if 'price_usd' in df else sells['amount_btc'].abs().sum()
-            
-            # Total return includes both realized gains and current holdings
-            total_return = realized_gains + current_value
-            
-            # Calculate ROI
-            if total_invested > 0:
-                roi = ((total_return - total_invested) / total_invested) * 100
+            # Calculate ROI based on net investment
+            if net_investment > 0:
+                roi = ((current_value - net_investment) / net_investment) * 100
                 metrics['roi_overall'] = roi
-                metrics['total_invested'] = total_invested
-                metrics['current_value'] = current_value
-                metrics['realized_gains'] = realized_gains
             else:
-                metrics['roi_overall'] = 0
+                # If net investment is 0 or negative, they've taken out more than they put in
+                metrics['roi_overall'] = 0  # Or could be infinity, but 0 is safer
                 
+            # Store additional metrics for debugging
+            metrics['total_money_in'] = total_money_in
+            metrics['total_money_out'] = total_money_out
+            metrics['net_investment'] = net_investment
+            metrics['current_value'] = current_value
+            
+        else:
+            metrics['roi_overall'] = 0
+            
         return metrics
     
     def _calculate_trading_patterns(self, df: pd.DataFrame) -> dict:

@@ -13,7 +13,23 @@ class WalletMetricsCalculator:
         self.SIGNIFICANT_SELL_THRESHOLD = 0.01  # 1% of current balance
         self.TRADE_FREQUENCY_THRESHOLD = 10  # trades per month for active trader
         self.HOLDING_PERIOD_THRESHOLD = 30  # days to consider holding
-        
+
+        # Load current BTC price
+        self.current_btc_price = self._load_current_btc_price()
+    
+    def _load_current_btc_price(self) -> float:
+        """Load current BTC price (last entry from price file)"""
+        price_file = self.base_dir / "raw" / "price" / "BTC_USD_Bitfinex_Investing_com.csv"
+        try:
+            df = pd.read_csv(price_file)
+            # Handle price column that might have commas
+            df['Price'] = pd.to_numeric(df['Price'].astype(str).str.replace(',', ''), errors='coerce')
+            last_price = df['Price'].iloc[-1]
+            return float(last_price)
+        except (FileNotFoundError, IndexError, ValueError) as e:
+            self.logger.error(f"Error loading current BTC price: {str(e)}")
+            return 0
+
     def calculate_wallet_metrics(self, wallet_address: str) -> dict:
         """Calculate comprehensive metrics for a wallet"""
         transactions_file = self.base_dir / "processed" / "transactions" / f"{wallet_address}.csv"
@@ -87,15 +103,24 @@ class WalletMetricsCalculator:
         """Calculate detailed performance metrics"""
         metrics = {}
         
-        # Calculate ROI
-        first_balance = df.iloc[0]['balance_btc']
-        last_balance = df.iloc[-1]['balance_btc']
+        # Get all buys and sells
+        buys = df[df['transaction_type'] == 'buy']
+        sells = df[df['transaction_type'] == 'sell']
         
-        if first_balance > 0:
-            metrics['roi_overall'] = ((last_balance - first_balance) / first_balance) * 100
-        else:
-            metrics['roi_overall'] = np.inf if last_balance > 0 else 0
+        if not buys.empty and 'price_usd' in df.columns:
+            # Simple ROI calculation: money in vs current value
+            total_money_in = (buys['amount_btc'] * buys['price_usd']).sum()
+            current_balance = df.iloc[-1]['balance_btc']
+            current_value = current_balance * self.current_btc_price
             
+            if total_money_in > 0:
+                roi = ((current_value - total_money_in) / total_money_in) * 100
+                metrics['roi_overall'] = roi
+            else:
+                metrics['roi_overall'] = 0
+        else:
+            metrics['roi_overall'] = 0
+
         # Calculate realized PnL from trades
         trades = df[df['transaction_type'].isin(['buy', 'sell'])]
         if not trades.empty:
@@ -108,14 +133,16 @@ class WalletMetricsCalculator:
         # Calculate volatility of portfolio value
         if 'price_usd' in df.columns:
             portfolio_values = df['balance_btc'] * df['price_usd']
-            metrics['portfolio_value_volatility'] = portfolio_values.std() / portfolio_values.mean() * 100
+            if len(portfolio_values) > 1 and portfolio_values.mean() > 0:
+                metrics['portfolio_value_volatility'] = portfolio_values.std() / portfolio_values.mean() * 100
             
         # Calculate max drawdown
         if 'price_usd' in df.columns:
             portfolio_values = df['balance_btc'] * df['price_usd']
-            rolling_max = portfolio_values.expanding().max()
-            drawdowns = (portfolio_values - rolling_max) / rolling_max * 100
-            metrics['max_drawdown_pct'] = abs(drawdowns.min())
+            if len(portfolio_values) > 1:
+                rolling_max = portfolio_values.expanding().max()
+                drawdowns = (portfolio_values - rolling_max) / rolling_max * 100
+                metrics['max_drawdown_pct'] = abs(drawdowns.min())
         
         return metrics
     

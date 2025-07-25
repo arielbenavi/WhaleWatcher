@@ -1,3 +1,4 @@
+import sys; print("DEBUG: PROCESS_DATA.PY - Script starting", file=sys.stderr)
 from src.data.processor import DataProcessor
 from src.data.metrics import WalletMetricsCalculator
 import logging

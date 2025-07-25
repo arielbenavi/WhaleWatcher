@@ -1,3 +1,4 @@
+import sys; print("DEBUG: RUN_COLLECTION.PY - Script starting", file=sys.stderr)
 import sys
 from pathlib import Path
 

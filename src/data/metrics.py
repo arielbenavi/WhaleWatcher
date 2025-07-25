@@ -1,3 +1,5 @@
+import sys; print("DEBUG: METRICS.PY - File loaded", file=sys.stderr)
+
 from pathlib import Path
 import pandas as pd
 import numpy as np
@@ -108,13 +110,27 @@ class WalletMetricsCalculator:
         sells = df[df['transaction_type'] == 'sell']
         
         if not buys.empty and 'price_usd' in df.columns:
-            # Simple ROI calculation: money in vs current value
+            # Calculate net investment (money in - money out)
             total_money_in = (buys['amount_btc'] * buys['price_usd']).sum()
+            total_money_out = (sells['amount_btc'].abs() * sells['price_usd']).sum() if not sells.empty else 0
+            net_investment = total_money_in - total_money_out
+            
+            # Current portfolio value
             current_balance = df.iloc[-1]['balance_btc']
             current_value = current_balance * self.current_btc_price
-            
-            if total_money_in > 0:
-                roi = ((current_value - total_money_in) / total_money_in) * 100
+            wallet_address = df.iloc[0]['wallet_address'] if 'wallet_address' in df.columns else "unknown"
+            print(f"🔢 ROI DEBUG for {wallet_address}:", file=sys.stderr)
+            # DEBUG: Print the calculations
+            print(f"Total money in: ${total_money_in:,.2f}")
+            print(f"Total money out: ${total_money_out:,.2f}")
+            print(f"Net investment: ${net_investment:,.2f}")
+            print(f"Current balance: {current_balance:.8f} BTC")
+            print(f"Current BTC price: ${self.current_btc_price:,.2f}")
+            print(f"Current value: ${current_value:,.2f}")
+
+            # ROI calculation
+            if net_investment > 0:
+                roi = ((current_value - net_investment) / net_investment) * 100
                 metrics['roi_overall'] = roi
             else:
                 metrics['roi_overall'] = 0

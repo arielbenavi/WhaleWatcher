@@ -1,3 +1,5 @@
+import sys; print("DEBUG: WHALE_ALERTS.PY - File loaded", file=sys.stderr)
+
 import pandas as pd
 from pathlib import Path
 import requests
@@ -60,6 +62,7 @@ class WhaleAlertMonitor:
 
     def check_timeframe(self, hours=24):
         """Alert on transactions in last X hours"""
+
         now = datetime.now()
         cutoff = now - timedelta(hours=hours)
         

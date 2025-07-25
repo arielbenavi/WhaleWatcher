@@ -3,25 +3,29 @@ import pandas as pd
 import logging
 from datetime import datetime, timedelta
 
-def _load_current_btc_price(self) -> float:
-    """Load current BTC price (last entry from price file)"""
-    price_file = self.base_dir / "raw" / "price" / "BTC_USD_Bitfinex_Investing_com.csv"
-    try:
-        df = pd.read_csv(price_file)
-        # Just get the last price value
-        last_price = df['Price'].iloc[-1]
-        return float(last_price)
-    except (FileNotFoundError, IndexError, ValueError) as e:
-        self.logger.error(f"Error loading current BTC price: {str(e)}")
-        return 0
 
 class WhaleMetricsCalculator:
     def __init__(self, base_dir: str = "data"):
         self.base_dir = Path(base_dir)
         self.logger = logging.getLogger(__name__)
         
+        # Create metrics directory
+        self.metrics_dir = self.base_dir / "processed" / "wallet_metrics"
+        self.metrics_dir.mkdir(parents=True, exist_ok=True)
+        
         # Load current BTC price
         self.current_btc_price = self._load_current_btc_price()
+        
+    def _load_current_btc_price(self) -> float:  # Move this inside the class
+        """Load current BTC price (last entry from price file)"""
+        price_file = self.base_dir / "raw" / "price" / "BTC_USD_Bitfinex_Investing_com.csv"
+        try:
+            df = pd.read_csv(price_file)
+            last_price = df['Price'].iloc[-1]
+            return float(last_price)
+        except (FileNotFoundError, IndexError, ValueError) as e:
+            self.logger.error(f"Error loading current BTC price: {str(e)}")
+            return 0
         
     def calculate_wallet_metrics(self, wallet_address: str) -> dict:
         """Calculate performance metrics for a single wallet"""
@@ -53,6 +57,9 @@ class WhaleMetricsCalculator:
     
     def _calculate_roi_metrics(self, df: pd.DataFrame) -> dict:
         """Calculate ROI using net investment method"""
+        print("🚨 DEBUG: Using whale_metrics.py - WhaleMetricsCalculator")
+        self.logger.info("🚨 DEBUG: whale_metrics.py is processing ROI")
+
         metrics = {}
         
         # Get all buys and sells
@@ -87,6 +94,14 @@ class WhaleMetricsCalculator:
             metrics['net_investment'] = net_investment
             metrics['current_value'] = current_value
             
+            # DEBUG: Print the calculations
+            print(f"Total money in: ${total_money_in:,.2f}")
+            print(f"Total money out: ${total_money_out:,.2f}")
+            print(f"Net investment: ${net_investment:,.2f}")
+            print(f"Current balance: {current_balance:.8f} BTC")
+            print(f"Current BTC price: ${self.current_btc_price:,.2f}")
+            print(f"Current value: ${current_value:,.2f}")
+
         else:
             metrics['roi_overall'] = 0
             

@@ -57,6 +57,9 @@ class WhaleAlertMonitor:
 
     def check_timeframe(self, hours=24):
         """Alert on transactions in last X hours"""
+        print("⚠️ DEBUG: Using alert_monitor.py - WhaleAlertMonitor")
+        self.logger.info("⚠️ DEBUG: alert_monitor.py is checking timeframe")
+
         now = datetime.now()
         cutoff = now - timedelta(hours=hours)
         

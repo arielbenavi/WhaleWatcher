@@ -132,6 +132,7 @@ class WalletMetricsCalculator:
             if net_investment > 0:
                 roi = ((current_value - net_investment) / net_investment) * 100
                 metrics['roi_overall'] = roi
+                print(f"ROI OVERALL: %{roi:,.2f}")
             else:
                 metrics['roi_overall'] = 0
         else:
